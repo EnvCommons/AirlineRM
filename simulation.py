@@ -50,8 +50,8 @@ def _booking_curve_cdf(days_before_departure: int, category: str) -> float:
 
     Uses a power-curve approximation (x^2.5 for business, 1-(1-x)^2.5
     for leisure, cubic Hermite for mixed). While the literature favors
-    exponential forms (Gerlach et al. 2023, "Average Booking Curves Draw
-    Exponential Functions", Scientific Reports 13:15627) or nonhomogeneous
+    exponential forms (Shintani & Umeno 2023, "Average Booking Curves Draw
+    Exponential Functions", Scientific Reports 13:15773) or nonhomogeneous
     Poisson arrival rates (Talluri & van Ryzin 2004, "The Theory and
     Practice of Revenue Management", Springer), the qualitative
     business-late / leisure-early asymmetry is well-established.

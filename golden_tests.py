@@ -1736,5 +1736,50 @@ class TestEnvironmentWiring:
                 )
 
 
+# ------------------------------------------------------------------ #
+# 20. Citation integrity                                              #
+# ------------------------------------------------------------------ #
+
+class TestCitationIntegrity:
+    """Verify that key citations in source files are accurate and haven't drifted."""
+
+    @staticmethod
+    def _file_contains(filepath, substring):
+        with open(filepath) as f:
+            return substring in f.read()
+
+    def test_shintani_umeno_not_gerlach(self):
+        """Gerlach et al. was a hallucinated author; correct is Shintani & Umeno."""
+        assert self._file_contains("simulation.py", "Shintani & Umeno 2023")
+        assert not self._file_contains("simulation.py", "Gerlach et al.")
+
+    def test_rothstein_transportation_science(self):
+        """Rothstein 1971 in Transportation Science is 'An Airline Overbooking Model', pp 180-192."""
+        assert self._file_contains("network.py", "Rothstein 1971")
+        assert self._file_contains("network.py", "Transportation Science 5(2):180-192")
+        assert not self._file_contains("network.py", "180-196")  # wrong page range
+
+    def test_smith_leimkuhler_darrow(self):
+        """Smith et al. 1992, Interfaces 22(1):8-31 — verified."""
+        assert self._file_contains("network.py", "Smith, Leimkuhler & Darrow 1992")
+        assert self._file_contains("network.py", "Interfaces 22(1):8-31")
+
+    def test_belobaba_1989(self):
+        """Belobaba 1989, Operations Research 37(2) — verified."""
+        assert self._file_contains("simulation.py", "Belobaba 1989")
+        assert self._file_contains("simulation.py", "Operations Research 37(2)")
+
+    def test_gallego_van_ryzin_1994(self):
+        """Gallego & van Ryzin 1994, Management Science 40(8) — verified."""
+        assert self._file_contains("simulation.py", "Gallego & van Ryzin 1994")
+        assert self._file_contains("simulation.py", "Management Science 40(8)")
+
+    def test_dot_14_cfr_250(self):
+        """DOT 14 CFR 250.5 denied boarding regulation — verified."""
+        assert self._file_contains("network.py", "DOT 14 CFR 250.5")
+        assert self._file_contains("network.py", "$775")
+        assert self._file_contains("network.py", "$1,550")
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

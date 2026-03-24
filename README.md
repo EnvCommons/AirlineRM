@@ -6,6 +6,8 @@
 
 AirlineRM is a hyper-realistic airline network revenue management environment where an agent operates a hub-and-spoke carrier over a 30-day horizon. The agent makes daily decisions about fare class availability (opening/closing 8 nested fare buckets), overbooking limits, and disruption response (weather, mechanical failures, crew shortages, competitor fare wars). The simulation is calibrated against real-world airline industry parameters including DOT-regulated denied boarding compensation, FAR Part 117 crew legality constraints, and empirical booking curve shapes.
 
+Note: this is a synthetic environment that should be tested thoroughly before use in an RL pipeline.
+
 ## Capabilities
 
 - Dynamic fare class management across an 8-class nested inventory (Y/B/M/H/Q/V/T/L)
@@ -40,20 +42,7 @@ Each task simulates 30 operating days across a 12-route hub-and-spoke network wi
 
 ## Reward Structure
 
-This is a dense, verifiable reward environment. Rewards are computed after each operating day (via the `advance_day` tool). The reward compares the agent's daily net revenue (revenue minus costs) against a naive baseline policy:
-
-$$\text{reward}_t = \frac{\text{agent\_net}_t - \text{baseline\_net}_t}{\max(|\text{baseline\_net}_t|, 1000)}$$
-
-The baseline policy opens all fare classes without strategic management, never overbooks, and handles disruptions with simple delay-or-cancel logic. A positive reward means the agent outperformed the baseline.
-
-Revenue sources:
-- Passenger fare revenue (fare class price x passengers boarded)
-
-Cost sources:
-- Denied boarding: $775/passenger (DOT 14 CFR 250)
-- Flight cancellation: $200/passenger (rebooking + accommodation)
-- Delay >1 hour: $50/passenger/hour
-- Aircraft swap: $5,000 fixed cost
+This is a dense, verifiable reward environment. Rewards are computed after each operating day (via the `advance_day` tool). The agent is rewarded for generating higher net revenue through effective fare management, overbooking decisions, and disruption handling. Poor financial outcomes — such as denied boardings, flight cancellations, and excessive delays — reduce the reward. A naive baseline policy that opens all fare classes without strategic management and never overbooks is used as a reference point.
 
 We do not use LLM graders for this environment.
 
@@ -67,7 +56,7 @@ All data is synthetically generated and deterministic given the task seed. No ex
 
 Agents are given access to a sandbox filesystem where they can write analysis scripts and build models.
 
-Simulation parameters are calibrated against: BTS LOADFACTORD (2019-2024 domestic load factor averages), DOT 14 CFR 250.5 (denied boarding compensation tiers), Smith, Leimkuhler & Darrow 1992 (no-show rates by fare class), Belobaba 1989 (booking curve shapes), FAA/DOT Form 41 Schedule P-5.2 (aircraft operating costs), and Gallego & van Ryzin 1994 (willingness-to-pay models).
+Simulation parameters are calibrated against: BTS LOADFACTORD (pre-pandemic domestic load factor averages), DOT 14 CFR 250.5 (denied boarding compensation tiers), Smith, Leimkuhler & Darrow 1992 (no-show rates by fare class), Belobaba 1989 (booking curve shapes), FAA/DOT Form 41 Schedule P-5.2 (aircraft operating costs), and Gallego & van Ryzin 1994 (willingness-to-pay models).
 
 ## Tools
 

@@ -181,18 +181,9 @@ Each day you should:
 5. Handle any disruptions: handle_disruption(disruption_id="...", action="delay_flight")
 6. Advance to next day: advance_day()
 
-REVENUE MANAGEMENT PRINCIPLES
-- Close lower fare classes as departure approaches to protect seats for high-value late-booking business travelers
-- Overbooking can increase revenue (filling no-show seats) but creates costly denied boardings if too aggressive
-- Business routes (BOS, ORD, SFO) have more late bookings and higher no-show rates
-- Leisure routes (MCO, FLL, CUN) book early with low no-show rates
-- Competitor fare wars reduce demand on affected routes — consider matching with lower fares
-
-DISRUPTION HANDLING
-- Weather, mechanical failures, and crew shortages may affect flights
-- Options: cancel_flight, delay_flight, swap_aircraft (to a different type), do_nothing (minor delays only)
-- Aircraft swaps cost $5,000 but can avoid cancellation costs ($200/pax) or delay costs ($50/pax/hr)
-- All pending disruptions MUST be resolved before you can advance_day()
+DISRUPTIONS
+- Weather, mechanical failures, and crew shortages may affect flights during the horizon.
+- All pending disruptions MUST be resolved before you can advance_day().
 
 COST STRUCTURE
 - Denied boarding: ${DENIED_BOARDING_COST:.0f} per passenger (DOT regulations)
@@ -201,7 +192,7 @@ COST STRUCTURE
 - Aircraft swap: ${AIRCRAFT_SWAP_FIXED_COST:.0f} fixed cost
 
 REWARD
-You earn a reward after each day comparing your net revenue (revenue - costs) against a naive baseline policy. Positive reward means you outperformed the baseline.
+You are rewarded for generating higher net revenue (revenue minus costs) and penalized for poor financial outcomes such as denied boardings, cancellations, and excessive delays.
 
 You also have access to CLI tools (bash, read, write, edit, glob, grep, ls) to write analysis scripts, build models, or track your strategies in the sandbox filesystem.
 

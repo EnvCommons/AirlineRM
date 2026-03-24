@@ -110,7 +110,7 @@ class Route:
 ROUTES: List[Route] = [
     # --- Business-heavy corridors ---
     # base_demand_mean = total daily pax demand across all frequencies on this route.
-    # Calibrated for ~85% base load factor matching BTS LOADFACTORD 2019-2024
+    # Calibrated for ~85% base load factor matching BTS LOADFACTORD pre-pandemic
     # domestic average (83-87%). Demand ≈ 1.05 * seats * freq to account for
     # spill from WTP below lowest fare and stochastic variance.
     Route("HUB", "BOS", 820, "business", "737-800", 3, 620, 555, 55, 0.55, 2.1),
@@ -214,8 +214,8 @@ DISRUPTION_TYPES: Dict[str, DisruptionType] = {
 
 # Competitor fare war is modelled separately (affects demand, not flights).
 # Max overbooking of 15% (enforced in airlinerm.py) exceeds typical
-# industry practice of 5-10% (Rothstein 1971, "Airline Overbooking: The
-# State of the Art", Transportation Science 5(2):180-196) but provides
+# industry practice of 5-10% (Rothstein 1971, "An Airline Overbooking
+# Model", Transportation Science 5(2):180-192) but provides
 # exploration headroom for RL agents.
 @dataclass
 class CompetitorFareWar:
