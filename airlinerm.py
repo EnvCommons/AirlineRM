@@ -41,6 +41,23 @@ from simulation import SimulationState, Disruption, DayResult
 from baseline import BaselinePolicy
 
 
+# Precomputed baselines (built once at image-build time by build_baselines.py).
+# Loaded eagerly at module import so __init__ becomes a dict lookup instead of
+# running a 30-day simulation under the GIL — keeps session setup fast under
+# high concurrency.
+import os.path as _ospath
+_BASELINES_PATH = _ospath.join(_ospath.dirname(__file__), "baselines.json")
+try:
+    with open(_BASELINES_PATH) as _f:
+        _RAW_BASELINES = json.load(_f)
+    _BASELINES: Dict[str, List[DayResult]] = {
+        tid: [DayResult(**d) for d in days]
+        for tid, days in _RAW_BASELINES.items()
+    }
+except FileNotFoundError:
+    _BASELINES = {}
+
+
 # ---------------------------------------------------------------------------
 # Pydantic models for tool inputs
 # ---------------------------------------------------------------------------
@@ -105,10 +122,17 @@ class AirlineRM(CLIEnvironment):
         # Deterministic seed from task ID
         seed = int(hashlib.sha256(task_id.encode()).hexdigest(), 16) % (2**32)
 
-        # --- Run baseline simulation first ---
-        baseline_rng = np.random.default_rng(seed)
-        baseline_policy = BaselinePolicy(baseline_rng, self.scenario, self.total_days)
-        self.baseline_results: List[DayResult] = baseline_policy.run_full_simulation()
+        # --- Baseline results (precomputed at image-build time) ---
+        # Falls back to live computation if the cache wasn't built — keeps
+        # local dev / tests working without a docker rebuild.
+        cached = _BASELINES.get(task_id)
+        if cached is not None:
+            self.baseline_results: List[DayResult] = cached
+        else:
+            baseline_rng = np.random.default_rng(seed)
+            self.baseline_results = BaselinePolicy(
+                baseline_rng, self.scenario, self.total_days
+            ).run_full_simulation()
 
         # --- Initialize agent simulation with the SAME seed ---
         agent_rng = np.random.default_rng(seed)

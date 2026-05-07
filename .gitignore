@@ -1,2 +1,4 @@
 *.jsonl
 __pycache__
+# Generated at image build time by build_baselines.py — never commit
+baselines.json

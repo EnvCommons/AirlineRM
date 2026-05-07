@@ -20,5 +20,10 @@ RUN uv venv --python 3.11
 COPY . /app
 RUN uv pip install -r /app/requirements.txt
 
+# Precompute deterministic baseline simulations once at build time so they're
+# loaded as a static dict on import — removes ~300ms of GIL-bound work from
+# AirlineRM.__init__ that was serialising setup under high session concurrency.
+RUN uv run python /app/build_baselines.py
+
 EXPOSE 8080
 CMD ["uv", "run", "python", "/app/server.py"]
