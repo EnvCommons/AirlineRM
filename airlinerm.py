@@ -57,6 +57,17 @@ try:
 except FileNotFoundError:
     _BASELINES = {}
 
+# Per-task initial bookings + post-bookings rng state, precomputed at image
+# build time by build_initial_bookings.py. When present, __init__ skips the
+# tens-of-thousands of synchronous RNG draws in _populate_initial_bookings,
+# which under concurrency was holding the GIL and starving the asyncio loop.
+_INITIAL_BOOKINGS_PATH = _ospath.join(_ospath.dirname(__file__), "initial_bookings.json")
+try:
+    with open(_INITIAL_BOOKINGS_PATH) as _f:
+        _INITIAL_BOOKINGS: Dict[str, Any] = json.load(_f)
+except FileNotFoundError:
+    _INITIAL_BOOKINGS = {}
+
 
 # ---------------------------------------------------------------------------
 # Pydantic models for tool inputs
@@ -136,7 +147,20 @@ class AirlineRM(CLIEnvironment):
 
         # --- Initialize agent simulation with the SAME seed ---
         agent_rng = np.random.default_rng(seed)
-        self.sim = SimulationState(agent_rng, self.scenario, self.total_days)
+        cached_init = _INITIAL_BOOKINGS.get(task_id)
+        if cached_init is not None:
+            # Skip _populate_initial_bookings; restore the booking state and
+            # advance the rng to where it would have been after that work,
+            # so subsequent draws stay bit-exact with the live-compute path.
+            self.sim = SimulationState(
+                agent_rng, self.scenario, self.total_days,
+                _skip_initial_bookings=True,
+            )
+            for f in self.sim.flights:
+                f.bookings_by_class = dict(cached_init["bookings"][f.flight_id])
+            agent_rng.bit_generator.state = cached_init["rng_state"]
+        else:
+            self.sim = SimulationState(agent_rng, self.scenario, self.total_days)
 
         # Generate disruptions for day 1
         self.sim.generate_disruptions(1)

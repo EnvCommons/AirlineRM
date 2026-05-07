@@ -25,5 +25,10 @@ RUN uv pip install -r /app/requirements.txt
 # AirlineRM.__init__ that was serialising setup under high session concurrency.
 RUN uv run python /app/build_baselines.py
 
+# Same idea for the agent-side initial-bookings simulation: precompute the
+# per-task booking state and post-bookings rng state, so __init__ becomes a
+# dict lookup instead of running tens of thousands of synchronous RNG draws.
+RUN uv run python /app/build_initial_bookings.py
+
 EXPOSE 8080
 CMD ["uv", "run", "python", "/app/server.py"]

@@ -146,6 +146,7 @@ class SimulationState:
         rng: np.random.Generator,
         scenario: Scenario,
         total_days: int = 30,
+        _skip_initial_bookings: bool = False,
     ):
         self.rng = rng
         self.scenario = scenario
@@ -157,8 +158,11 @@ class SimulationState:
             f.flight_id: f for f in self.flights
         }
 
-        # Pre-populate historical bookings (days before the simulation starts)
-        self._populate_initial_bookings()
+        # Pre-populate historical bookings (days before the simulation starts).
+        # Skipped when the caller is restoring a precomputed booking state
+        # (and the rng state alongside it) — see build_initial_bookings.py.
+        if not _skip_initial_bookings:
+            self._populate_initial_bookings()
 
         # Disruption state
         self.disruptions: List[Disruption] = []
