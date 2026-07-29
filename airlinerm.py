@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import hashlib
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Literal
 
 import numpy as np
 from pydantic import BaseModel
@@ -89,7 +89,7 @@ class SetOverbookingLimitParams(BaseModel, extra="forbid"):
 
 class HandleDisruptionParams(BaseModel, extra="forbid"):
     disruption_id: str
-    action: str  # "cancel_flight", "delay_flight", "swap_aircraft", "do_nothing"
+    action: Literal["cancel_flight", "delay_flight", "swap_aircraft", "do_nothing"]
     swap_aircraft_type: Optional[str] = None  # required if action == "swap_aircraft"
 
 class EmptyParams(BaseModel, extra="forbid"):
@@ -570,7 +570,10 @@ Your goal: maximize cumulative reward over the 30-day horizon through superior r
 
     @tool
     async def handle_disruption(self, params: HandleDisruptionParams) -> ToolOutput:
-        """Respond to an active disruption by choosing cancel, delay, swap, or do-nothing."""
+        """Respond to an active disruption. `action` must be one of the exact values
+        "cancel_flight", "delay_flight", "swap_aircraft", or "do_nothing"
+        ("do_nothing" is only valid for delays < 1 hour; "swap_aircraft" requires
+        swap_aircraft_type)."""
         # Find the disruption
         disruption = None
         for d in self.sim.disruptions:
